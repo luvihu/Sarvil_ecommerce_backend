@@ -8,7 +8,7 @@ const routerImage = Router();
 routerImage.get('/:projectId/images', getProjectImages);
 routerImage.post('/:projectId/images', authMiddleware, uploadProjectImages, addImagesToProject);
 routerImage.put('/:imageId', authMiddleware, uploadProjectImages, updateImage);
-routerImage.delete(':imageId', authMiddleware, deleteImage);
+routerImage.delete('/:imageId', authMiddleware, deleteImage);
 
 
 export default routerImage;
