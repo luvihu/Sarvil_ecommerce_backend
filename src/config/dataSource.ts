@@ -15,8 +15,8 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   ssl: { rejectUnauthorized: false },
-  entities: [Inquiry, Plan, Project, User, Image, Video],
   synchronize: false,  // solo para desarrollo es true, en producccion es false
+  entities: [Inquiry, Plan, Project, User, Image, Video],
   extra: {
     connectionTimeoutMillis: 10000,
     max: 5, // Límite de conexiones
