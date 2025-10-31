@@ -2,7 +2,7 @@ import app from './server';
 import "reflect-metadata";
 import { AppDataSource } from './config/dataSource';
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3001;
 const startApp = async () => {
   try {
     await AppDataSource.initialize();
