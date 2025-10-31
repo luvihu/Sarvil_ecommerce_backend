@@ -65,6 +65,6 @@ export const registerUser = async (req:Request, res: Response) => {
 export const allUserAdmin = async (req: Request, res: Response) => {
   const allUser = await userRepository.find();
   return res.status(200).json(allUser);
-};
+}
 
 
