@@ -29,11 +29,11 @@ export const  createInquiry = async (req:Request, res:Response, next:NextFunctio
     }
 
     if (dataBody.name.length < 2 || dataBody.name.length > 100) {
-      return next(new AppError('El nombre debe tener entre 2 y 100 caracteres', 400));
+      return next(new AppError('El nombre debe tener entre 2 y 100 caracteres', 400))
     };
 
      if (dataBody.message.trim().length < 5 || dataBody.message.length > 2000) {
-      return next(new AppError('El mensaje debe tener entre 5 y 2000 caracteres', 400));
+      return next(new AppError('El mensaje debe tener entre 5 y 2000 caracteres', 400))
     };
     
     const inquiry = await createInquiryService(dataBody);
