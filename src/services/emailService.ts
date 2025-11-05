@@ -2,14 +2,25 @@ import nodemailer from 'nodemailer';
 import { Inquiry } from '../entities/Inquiry';
 
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD
-  }
+  },
+  connectionTimeout: 30000, // 30 segundos
+  socketTimeout: 30000,     // 30 segundos
+  greetingTimeout: 30000,   // 30 segundos
+  dnsTimeout: 30000,        // 30 segundos
+  // Intentar reconexión automática
+  retries: 3,
+  // Pool de conexiones
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100
 });
+
 transporter.verify((error: Error | null, success: boolean) => {
   if (error) {
     console.log('Error al conectar con el servidor de email:', error);
