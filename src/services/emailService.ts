@@ -175,65 +175,42 @@
 import nodemailer from 'nodemailer';
 import { Inquiry } from '../entities/Inquiry';
 
-// Validar variables de entorno
-const validateEmailConfig = () => {
-  if (!process.env.EMAIL_USER) {
-    throw new Error('EMAIL_USER no está configurado');
-  }
-  if (!process.env.EMAIL_PASSWORD) {
-    throw new Error('EMAIL_PASSWORD no está configurado');
-  }
-  if (!process.env.ADMIN_EMAIL) {
-    throw new Error('ADMIN_EMAIL no está configurado');
-  }
-};
-
-validateEmailConfig();
-
 const transporter = nodemailer.createTransport({
-  service: 'gmail', 
+  host: 'smtp.sendgrid.net', 
+  port: 587, 
+  secure: false, 
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD
+    user: 'apikey', // ← LITERALMENTE "apikey" (así, en minúsculas)
+    pass: process.env.SENDGRID_API_KEY 
   },
-  // Configuración optimizada para entornos cloud
   connectionTimeout: 30000,
   socketTimeout: 30000,
   greetingTimeout: 30000,
-  // Configuración TLS importante para Gmail
-  tls: {
-    rejectUnauthorized: false
-  },
-  // Pool de conexiones
+  dnsTimeout: 30000,
+  retries: 3,
   pool: true,
   maxConnections: 5,
   maxMessages: 100
 });
 
-
+// Verificar conexión
 transporter.verify((error: Error | null, success: boolean) => {
   if (error) {
-    console.error('Error conectando con Gmail:', {
-      message: error.message,
-      code: (error as any).code
-    });
+    console.error('Error conectando con SendGrid:', error);
   } else {
-    console.log('Servidor de email listo para enviar mensajes');
-    console.log('Cuenta:', process.env.EMAIL_USER);
+    console.log('SendGrid conectado - Servidor de email listo');
   }
 });
 
 export const sendInquiryEmails = async (inquiry: Inquiry) => {
   try {
-    console.log('Intentando enviar emails para consulta:', {
-      id: inquiry.id,
-      cliente: inquiry.email,
-      admin: process.env.ADMIN_EMAIL
-    });
+    console.log('Iniciando envío de emails via SendGrid...');
+    console.log('Cliente:', inquiry.email);
+    console.log('Nombre:', inquiry.name);
 
     // 📩 Correo al cliente
-    const clientEmail = await transporter.sendMail({
-      from: `"Sarvil360 Solutions" <${process.env.EMAIL_USER}>`,
+    await transporter.sendMail({
+      from: '"Sarvil360 Solutions" <sarvil360solutions@gmail.com>', 
       to: inquiry.email,
       subject: '¡Gracias por tu consulta!',
       html: `
@@ -244,16 +221,16 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
             ${inquiry.message}
           </blockquote>
           <p>Nos comunicaremos contigo <strong>a la brevedad</strong> por correo o WhatsApp.</p>
-          <p>Equipo de Desarrollo Sarvil360 Solutions</p>
+          <p>Equipo de Desarrollo y Diseño Sarvil</p>
         </div>
       `,
     });
 
-    console.log('Email al cliente enviado:', clientEmail.messageId);
+    console.log('Email al cliente enviado');
 
     // 📩 Correo a ti (copia interna)
-    const adminEmail = await transporter.sendMail({
-      from: `"Notificaciones Sarvil" <${process.env.EMAIL_USER}>`,
+    await transporter.sendMail({
+      from: '"Notificaciones Sarvil" <sarvil360solutions@gmail.com>', 
       to: process.env.ADMIN_EMAIL,
       subject: `Nueva consulta: ${inquiry.selectedPlan || 'Sin plan'}`,
       html: `
@@ -275,7 +252,7 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
       `,
     });
 
-    console.log('Email al admin enviado:', adminEmail.messageId);
+    console.log('Email de notificación enviado');
     console.log(`Todos los emails enviados para consulta ID: ${inquiry.id}`);
     
     return true;
@@ -286,7 +263,6 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
       code: error.code,
       command: error.command
     });
-    
-    throw new Error(`No se pudieron enviar los emails: ${error.message}`);
+    throw new Error('No se pudieron enviar los emails: ' + error.message);
   }
 };
