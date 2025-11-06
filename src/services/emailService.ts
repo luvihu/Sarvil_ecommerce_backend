@@ -184,8 +184,12 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
     // 📩 Email al cliente
     const clientEmail = {
       to: inquiry.email,
-      from: 'sarvil360solutions@gmail.com', // Debe ser un email verificado en SendGrid
+      from: {
+        email: 'sarvil360solutions@gmail.com',
+        name: 'Sarvil360 Solutions' // ← Nombre claro
+      }, // Debe ser un email verificado en SendGrid
       subject: '¡Gracias por tu consulta!',
+      categories: ['inquiry', 'confirmation'],
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto;">
           <h2 style="color: #0A192F;">¡Hola ${inquiry.name}!</h2>
@@ -202,7 +206,10 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
     // 📩 Email a ti
     const adminEmail = {
       to: process.env.ADMIN_EMAIL!,
-      from: 'sarvil360solutions@gmail.com',
+      from: {
+        email: 'sarvil360solutions@gmail.com',
+        name: 'Notificaciones Sarvil360'
+      },
       subject: `📩 Nueva consulta: ${inquiry.selectedPlan || 'Sin plan'}`,
       html: `
         <div style="font-family: Arial, sans-serif;">
@@ -221,6 +228,7 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
           </p>
         </div>
       `,
+      categories: ['admin-notification']
     };
 
     // Enviar emails en paralelo
