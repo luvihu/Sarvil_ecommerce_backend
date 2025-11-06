@@ -102,7 +102,7 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
    
     // 📩 Email al cliente
     await resend.emails.send({
-      from:'Sarvil360 Solutions <onboarding@resend.dev>', // ← Usar dominio verificado cuando tenga
+      from:`Sarvil360 Solutions <${adminEmail}>`, // ← Usar dominio verificado cuando tenga
       to: inquiry.email,
       replyTo: adminEmail,
       subject: '¡Gracias por tu consulta!',
@@ -121,7 +121,7 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
 
     // 📩 Email a ti (copia interna)
     await resend.emails.send({
-      from: 'Notificaciones Sarvil <onboarding@resend.dev>', // ← Mismo dominio verificado
+      from: `Notificaciones Sarvil <${adminEmail}>`, // ← Mismo dominio verificado
       to: adminEmail,
       subject: `📩 Nueva consulta: ${inquiry.selectedPlan || 'Sin plan'}`,
       html: `
