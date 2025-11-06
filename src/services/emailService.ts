@@ -172,46 +172,19 @@
 // };
 
 
-import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 import { Inquiry } from '../entities/Inquiry';
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.sendgrid.net', 
-  port: 587, 
-  secure: false, 
-  auth: {
-    user: 'apikey', // ← LITERALMENTE "apikey" (así, en minúsculas)
-    pass: process.env.SENDGRID_API_KEY 
-  },
-  connectionTimeout: 30000,
-  socketTimeout: 30000,
-  greetingTimeout: 30000,
-  dnsTimeout: 30000,
-  retries: 3,
-  pool: true,
-  maxConnections: 5,
-  maxMessages: 100
-});
-
-// Verificar conexión
-transporter.verify((error: Error | null, success: boolean) => {
-  if (error) {
-    console.error('Error conectando con SendGrid:', error);
-  } else {
-    console.log('SendGrid conectado - Servidor de email listo');
-  }
-});
+sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
 export const sendInquiryEmails = async (inquiry: Inquiry) => {
   try {
-    console.log('Iniciando envío de emails via SendGrid...');
-    console.log('Cliente:', inquiry.email);
-    console.log('Nombre:', inquiry.name);
+    console.log('📤 Enviando emails via SendGrid API...');
 
-    // 📩 Correo al cliente
-    await transporter.sendMail({
-      from: '"Sarvil360 Solutions" <sarvil360solutions@gmail.com>', 
+    // 📩 Email al cliente
+    const clientEmail = {
       to: inquiry.email,
+      from: 'sarvil360solutions@gmail.com', // Debe ser un email verificado en SendGrid
       subject: '¡Gracias por tu consulta!',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto;">
@@ -220,19 +193,17 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
           <blockquote style="background: #f5f7fa; padding: 15px; border-left: 4px solid #2563EB; margin: 15px 0;">
             ${inquiry.message}
           </blockquote>
-          <p>Nos comunicaremos contigo <strong>a la brevedad</strong> por correo o WhatsApp.</p>
-          <p>Equipo de Desarrollo y Diseño Sarvil</p>
+          <p>Nos comunicaremos contigo <strong>a la brevedad</strong>.</p>
+          <p>Equipo de Desarrollo Sarvil360 Solutions</p>
         </div>
       `,
-    });
+    };
 
-    console.log('Email al cliente enviado');
-
-    // 📩 Correo a ti (copia interna)
-    await transporter.sendMail({
-      from: '"Notificaciones Sarvil" <sarvil360solutions@gmail.com>', 
-      to: process.env.ADMIN_EMAIL,
-      subject: `Nueva consulta: ${inquiry.selectedPlan || 'Sin plan'}`,
+    // 📩 Email a ti
+    const adminEmail = {
+      to: process.env.ADMIN_EMAIL!,
+      from: 'sarvil360solutions@gmail.com',
+      subject: `📩 Nueva consulta: ${inquiry.selectedPlan || 'Sin plan'}`,
       html: `
         <div style="font-family: Arial, sans-serif;">
           <h3 style="color: #0A192F;">Nueva consulta recibida</h3>
@@ -250,19 +221,22 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
           </p>
         </div>
       `,
-    });
+    };
 
-    console.log('Email de notificación enviado');
-    console.log(`Todos los emails enviados para consulta ID: ${inquiry.id}`);
-    
+    // Enviar emails en paralelo
+    await Promise.all([
+      sgMail.send(clientEmail),
+      sgMail.send(adminEmail)
+    ]);
+
+    console.log('Emails enviados via SendGrid API');
     return true;
     
   } catch (error: any) {
-    console.error('Error detallado enviando emails:', {
+    console.error('Error SendGrid API:', {
       message: error.message,
-      code: error.code,
-      command: error.command
+      response: error.response?.body
     });
-    throw new Error('No se pudieron enviar los emails: ' + error.message);
+    throw error;
   }
 };
