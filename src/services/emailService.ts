@@ -95,14 +95,33 @@ const getAdminEmail = (): string => {
   }
   return adminEmail;
 };
+
+const ensureContact = async (email: string) => {
+  try {
+    await resend.contacts.create({
+      email: email,
+      audienceId: 'your-audience-id', // Opcional pero recomendado
+      firstName: 'Cliente' // Puedes personalizar
+    });
+    console.log(`Contacto verificado/agregado: ${email}`);
+  } catch (error: any) {
+    // Si el contacto ya existe, ignora el error
+    if (error.message?.includes('already exists')) {
+      console.log(`Contacto ya existe: ${email}`);
+    } else {
+      console.warn(`No se pudo verificar contacto ${email}:`, error.message);
+    }
+  }
+};
  
 export const sendInquiryEmails = async (inquiry: Inquiry) => {
   try {
     const adminEmail = getAdminEmail(); // ← Garantizado que es string
-   
+     await ensureContact(inquiry.email);
+
     // 📩 Email al cliente
     await resend.emails.send({
-      from:`Sarvil360 Solutions <${adminEmail}>`, // ← Usar dominio verificado cuando tenga
+      from:'Sarvil360 Solutions <onboarding@resend.dev>', // ← Usar dominio verificado cuando tenga
       to: inquiry.email,
       replyTo: adminEmail,
       subject: '¡Gracias por tu consulta!',
@@ -121,7 +140,7 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
 
     // 📩 Email a ti (copia interna)
     await resend.emails.send({
-      from: `Notificaciones Sarvil <${adminEmail}>`, // ← Mismo dominio verificado
+      from: 'Notificaciones Sarvil <onboarding@resend.dev>', // ← Mismo dominio verificado
       to: adminEmail,
       subject: `📩 Nueva consulta: ${inquiry.selectedPlan || 'Sin plan'}`,
       html: `
