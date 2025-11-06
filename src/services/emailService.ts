@@ -263,8 +263,8 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
       EMAILJS_CONFIG.serviceId,
       EMAILJS_CONFIG.templateCustomerId,
       {
+        reply_to: inquiry.email,
         to_name: inquiry.name,
-        to_email: inquiry.email,
         message: inquiry.message,
         plan: inquiry.selectedPlan || 'Sin plan específico'
       },
@@ -279,6 +279,7 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
       EMAILJS_CONFIG.serviceId,
       EMAILJS_CONFIG.templateAdminId,
       {
+        reply_to: process.env.ADMIN_EMAIL!,
         client_name: inquiry.name,
         client_email: inquiry.email,
         client_phone: inquiry.phone || 'No proporcionado',
@@ -297,7 +298,11 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
     return true;
     
   } catch (error: any) {
-    console.error('Error EmailJS:', error);
+    console.error('Error EmailJS:', {
+      status: error.status,
+      text: error.text,
+      message: error.message
+    });
     throw error;
   }
 };
