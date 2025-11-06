@@ -95,20 +95,16 @@ const getAdminEmail = (): string => {
   }
   return adminEmail;
 };
- const getReplyToEmail = (): string => {
-  return process.env.REPLY_TO_EMAIL || 'sarvil360solutions@gmail.com';
-};
-
+ 
 export const sendInquiryEmails = async (inquiry: Inquiry) => {
   try {
     const adminEmail = getAdminEmail(); // ← Garantizado que es string
-    const replyToEmail = getReplyToEmail();
-
+   
     // 📩 Email al cliente
     await resend.emails.send({
       from:'Sarvil360 Solutions <onboarding@resend.dev>', // ← Usar dominio verificado cuando tenga
       to: inquiry.email,
-      replyTo: replyToEmail,
+      replyTo: adminEmail,
       subject: '¡Gracias por tu consulta!',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto;">
