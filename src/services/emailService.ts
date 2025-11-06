@@ -184,13 +184,10 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
     // 📩 Email al cliente
     const clientEmail = {
       to: inquiry.email,
-      from: {
-        email: 'sarvil360solutions@gmail.com',
-        name: 'Sarvil360 Solutions' // ← Nombre claro
-      }, // Debe ser un email verificado en SendGrid
-      subject: '¡Gracias por tu consulta!',
-      categories: ['inquiry', 'confirmation'],
-      html: `
+      from: 'sarvil360solutions@gmail.com', // Debe ser un email verificado en SendGrid
+      subject: '¡Gracias por tu consulta! - Sarvil360 Solutions',
+      text: `Hola ${inquiry.name}. Gracias por contactarnos. Hemos recibido tu consulta: "${inquiry.message}". Nos comunicaremos contigo a la brevedad. Equipo Sarvil360 Solutions.`, 
+       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto;">
           <h2 style="color: #0A192F;">¡Hola ${inquiry.name}!</h2>
           <p>Gracias por contactarnos. Hemos recibido tu consulta:</p>
@@ -198,6 +195,7 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
             ${inquiry.message}
           </blockquote>
           <p>Nos comunicaremos contigo <strong>a la brevedad</strong>.</p>
+          
           <p>Equipo de Desarrollo Sarvil360 Solutions</p>
         </div>
       `,
