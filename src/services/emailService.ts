@@ -172,74 +172,132 @@
 // };
 
 
-import sgMail from '@sendgrid/mail';
+// import sgMail from '@sendgrid/mail';
+// import { Inquiry } from '../entities/Inquiry';
+
+// sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+
+// export const sendInquiryEmails = async (inquiry: Inquiry) => {
+//   try {
+//     console.log('📤 Enviando emails via SendGrid API...');
+
+//     // 📩 Email al cliente
+//     const clientEmail = {
+//       to: inquiry.email,
+//       from: 'sarvil360solutions@gmail.com', // Debe ser un email verificado en SendGrid
+//       subject: '¡Gracias por tu consulta! - Sarvil360 Solutions',
+//        html: `
+//         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto;">
+//           <h2 style="color: #0A192F;">¡Hola ${inquiry.name}!</h2>
+//           <p>Gracias por contactarnos. Hemos recibido tu consulta:</p>
+//           <blockquote style="background: #f5f7fa; padding: 15px; border-left: 4px solid #2563EB; margin: 15px 0;">
+//             ${inquiry.message}
+//           </blockquote>
+//           <p>Nos comunicaremos contigo <strong>a la brevedad</strong>.</p>
+          
+//           <p>Equipo de Desarrollo Sarvil360 Solutions</p>
+//         </div>
+//       `,
+//     };
+
+//     // 📩 Email a ti
+//     const adminEmail = {
+//       to: process.env.ADMIN_EMAIL!,
+//       from: 'sarvil360solutions@gmail.com',
+//       subject: `📩 Nueva consulta: ${inquiry.selectedPlan || 'Sin plan'}`,
+//       html: `
+//         <div style="font-family: Arial, sans-serif;">
+//           <h3 style="color: #0A192F;">Nueva consulta recibida</h3>
+//           <p><strong>Nombre:</strong> ${inquiry.name}</p>
+//           <p><strong>Correo:</strong> ${inquiry.email}</p>
+//           <p><strong>Teléfono:</strong> ${inquiry.phone || '—'}</p>
+//           <p><strong>Plan:</strong> ${inquiry.selectedPlan || '—'}</p>
+//           <p><strong>Mensaje:</strong></p>
+//           <div style="background: #f5f7fa; padding: 15px; border-left: 4px solid #2563EB; margin: 15px 0;">
+//             ${inquiry.message}
+//           </div>
+//           <hr>
+//           <p style="color: #666; font-size: 12px;">
+//             ID: ${inquiry.id} | Fecha: ${new Date().toLocaleString()}
+//           </p>
+//         </div>
+//       `,
+//       categories: ['admin-notification']
+//     };
+
+//     // Enviar emails en paralelo
+//     await Promise.all([
+//       sgMail.send(clientEmail),
+//       sgMail.send(adminEmail)
+//     ]);
+
+//     console.log('Emails enviados via SendGrid API');
+//     return true;
+    
+//   } catch (error: any) {
+//     console.error('Error SendGrid API:', {
+//       message: error.message,
+//       response: error.response?.body
+//     });
+//     throw error;
+//   }
+// };
+
+import emailjs from '@emailjs/nodejs';
 import { Inquiry } from '../entities/Inquiry';
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+const EMAILJS_CONFIG = {
+  serviceId: process.env.EMAILJS_SERVICE_ID!,
+  templateCustomerId: process.env.EMAILJS_TEMPLATE_CUSTOMER_ID!,
+  templateAdminId: process.env.EMAILJS_TEMPLATE_ADMIN_ID!,
+  publicKey: process.env.EMAILJS_PUBLIC_KEY!,
+  privateKey: process.env.EMAILJS_PRIVATE_KEY!
+};
 
 export const sendInquiryEmails = async (inquiry: Inquiry) => {
   try {
-    console.log('📤 Enviando emails via SendGrid API...');
+    console.log('📤 Enviando emails via EmailJS...');
 
     // 📩 Email al cliente
-    const clientEmail = {
-      to: inquiry.email,
-      from: 'sarvil360solutions@gmail.com', // Debe ser un email verificado en SendGrid
-      subject: '¡Gracias por tu consulta! - Sarvil360 Solutions',
-       text: `
-          ¡Hola ${inquiry.name}!
-
-          Gracias por contactar a Sarvil360 Solutions. Hemos recibido tu consulta:
-
-          "${inquiry.message}"
-
-          Nos comunicaremos contigo en un plazo máximo de 24 horas.
-
-          ¿Tienes más preguntas? Responde directamente a este email.
-
-          Saludos cordiales,
-          Equipo de Desarrollo
-          Sarvil360 Solutions
-                `.trim()
-    };
+    await emailjs.send(
+      EMAILJS_CONFIG.serviceId,
+      EMAILJS_CONFIG.templateCustomerId,
+      {
+        to_name: inquiry.name,
+        to_email: inquiry.email,
+        message: inquiry.message,
+        plan: inquiry.selectedPlan || 'Sin plan específico'
+      },
+      {
+        publicKey: EMAILJS_CONFIG.publicKey,
+        privateKey: EMAILJS_CONFIG.privateKey
+      }
+    );
 
     // 📩 Email a ti
-    const adminEmail = {
-      to: process.env.ADMIN_EMAIL!,
-      from:  'sarvil360solutions@gmail.com',
-      subject: `📩 Nueva consulta: ${inquiry.selectedPlan || 'Sin plan'}`,
-     text: `
-          NUEVA CONSULTA RECIBIDA
+    await emailjs.send(
+      EMAILJS_CONFIG.serviceId,
+      EMAILJS_CONFIG.templateAdminId,
+      {
+        client_name: inquiry.name,
+        client_email: inquiry.email,
+        client_phone: inquiry.phone || 'No proporcionado',
+        plan: inquiry.selectedPlan || 'Sin plan específico',
+        client_message: inquiry.message,
+        inquiry_id: inquiry.id,
+        date: new Date().toLocaleString()
+      },
+      {
+        publicKey: EMAILJS_CONFIG.publicKey,
+        privateKey: EMAILJS_CONFIG.privateKey
+      }
+    );
 
-          Nombre: ${inquiry.name}
-          Correo: ${inquiry.email}
-          Teléfono: ${inquiry.phone || 'No proporcionado'}
-          Plan: ${inquiry.selectedPlan || 'Sin plan específico'}
-
-          Mensaje:
-          ${inquiry.message}
-
-          ---
-          ID: ${inquiry.id}
-          Fecha: ${new Date().toLocaleString()}
-          Web: sarvil360.vercel.app
-                `.trim()
-    };
-
-    // Enviar emails en paralelo
-    await Promise.all([
-      sgMail.send(clientEmail),
-      sgMail.send(adminEmail)
-    ]);
-
-    console.log('Emails enviados via SendGrid API');
+    console.log('Emails enviados correctamente');
     return true;
     
   } catch (error: any) {
-    console.error('Error SendGrid API:', {
-      message: error.message,
-      response: error.response?.body
-    });
+    console.error('Error EmailJS:', error);
     throw error;
   }
 };
