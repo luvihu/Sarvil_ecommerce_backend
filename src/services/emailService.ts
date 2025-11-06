@@ -186,47 +186,44 @@ export const sendInquiryEmails = async (inquiry: Inquiry) => {
       to: inquiry.email,
       from: 'sarvil360solutions@gmail.com', // Debe ser un email verificado en SendGrid
       subject: '¡Gracias por tu consulta! - Sarvil360 Solutions',
-      text: `Hola ${inquiry.name}. Gracias por contactarnos. Hemos recibido tu consulta: "${inquiry.message}". Nos comunicaremos contigo a la brevedad. Equipo Sarvil360 Solutions.`, 
-       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto;">
-          <h2 style="color: #0A192F;">¡Hola ${inquiry.name}!</h2>
-          <p>Gracias por contactarnos. Hemos recibido tu consulta:</p>
-          <blockquote style="background: #f5f7fa; padding: 15px; border-left: 4px solid #2563EB; margin: 15px 0;">
-            ${inquiry.message}
-          </blockquote>
-          <p>Nos comunicaremos contigo <strong>a la brevedad</strong>.</p>
-          
-          <p>Equipo de Desarrollo Sarvil360 Solutions</p>
-        </div>
-      `,
+       text: `
+          ¡Hola ${inquiry.name}!
+
+          Gracias por contactar a Sarvil360 Solutions. Hemos recibido tu consulta:
+
+          "${inquiry.message}"
+
+          Nos comunicaremos contigo en un plazo máximo de 24 horas.
+
+          ¿Tienes más preguntas? Responde directamente a este email.
+
+          Saludos cordiales,
+          Equipo de Desarrollo
+          Sarvil360 Solutions
+                `.trim()
     };
 
     // 📩 Email a ti
     const adminEmail = {
       to: process.env.ADMIN_EMAIL!,
-      from: {
-        email: 'sarvil360solutions@gmail.com',
-        name: 'Notificaciones Sarvil360'
-      },
+      from:  'sarvil360solutions@gmail.com',
       subject: `📩 Nueva consulta: ${inquiry.selectedPlan || 'Sin plan'}`,
-      html: `
-        <div style="font-family: Arial, sans-serif;">
-          <h3 style="color: #0A192F;">Nueva consulta recibida</h3>
-          <p><strong>Nombre:</strong> ${inquiry.name}</p>
-          <p><strong>Correo:</strong> ${inquiry.email}</p>
-          <p><strong>Teléfono:</strong> ${inquiry.phone || '—'}</p>
-          <p><strong>Plan:</strong> ${inquiry.selectedPlan || '—'}</p>
-          <p><strong>Mensaje:</strong></p>
-          <div style="background: #f5f7fa; padding: 15px; border-left: 4px solid #2563EB; margin: 15px 0;">
-            ${inquiry.message}
-          </div>
-          <hr>
-          <p style="color: #666; font-size: 12px;">
-            ID: ${inquiry.id} | Fecha: ${new Date().toLocaleString()}
-          </p>
-        </div>
-      `,
-      categories: ['admin-notification']
+     text: `
+          NUEVA CONSULTA RECIBIDA
+
+          Nombre: ${inquiry.name}
+          Correo: ${inquiry.email}
+          Teléfono: ${inquiry.phone || 'No proporcionado'}
+          Plan: ${inquiry.selectedPlan || 'Sin plan específico'}
+
+          Mensaje:
+          ${inquiry.message}
+
+          ---
+          ID: ${inquiry.id}
+          Fecha: ${new Date().toLocaleString()}
+          Web: sarvil360.vercel.app
+                `.trim()
     };
 
     // Enviar emails en paralelo
